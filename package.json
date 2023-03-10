@@ -1,5 +1,5 @@
 {
-  "name": "paul-graham-gpt",
+  "name": "inamori-kazuo-gpt",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -23,6 +23,7 @@
     "next": "13.1.6",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-hook-form": "^7.43.5",
     "typescript": "4.9.5"
   },
   "devDependencies": {

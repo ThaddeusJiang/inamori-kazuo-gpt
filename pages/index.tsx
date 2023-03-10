@@ -5,12 +5,12 @@ import { PGChunk } from "@/types";
 import { IconArrowRight, IconExternalLink, IconSearch } from "@tabler/icons-react";
 import endent from "endent";
 import Head from "next/head";
-import { KeyboardEvent, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
 
 export default function Home() {
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const [query, setQuery] = useState<string>("");
   const [chunks, setChunks] = useState<PGChunk[]>([]);
   const [answer, setAnswer] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -20,7 +20,9 @@ export default function Home() {
   const [matchCount, setMatchCount] = useState<number>(5);
   const [apiKey, setApiKey] = useState<string>("");
 
-  const handleSearch = async () => {
+  const { register, handleSubmit } = useForm();
+
+  const handleSearch = async (query: string) => {
     if (!apiKey) {
       alert("Please enter an API key.");
       return;
@@ -39,9 +41,9 @@ export default function Home() {
     const searchResponse = await fetch("/api/search", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ query, apiKey, matches: matchCount })
+      body: JSON.stringify({ query, apiKey, matches: matchCount }),
     });
 
     if (!searchResponse.ok) {
@@ -60,7 +62,7 @@ export default function Home() {
     return results;
   };
 
-  const handleAnswer = async () => {
+  const handleAnswer = async (query: string) => {
     if (!apiKey) {
       alert("Please enter an API key.");
       return;
@@ -79,9 +81,9 @@ export default function Home() {
     const searchResponse = await fetch("/api/search", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ query, apiKey, matches: matchCount })
+      body: JSON.stringify({ query, apiKey, matches: matchCount }),
     });
 
     if (!searchResponse.ok) {
@@ -102,9 +104,9 @@ export default function Home() {
     const answerResponse = await fetch("/api/answer", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ prompt, apiKey })
+      body: JSON.stringify({ prompt, apiKey }),
     });
 
     if (!answerResponse.ok) {
@@ -134,13 +136,12 @@ export default function Home() {
     inputRef.current?.focus();
   };
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      if (mode === "search") {
-        handleSearch();
-      } else {
-        handleAnswer();
-      }
+  const onSubmit = (data: any) => {
+    const query = data.query;
+    if (mode === "search") {
+      handleSearch(query);
+    } else {
+      handleAnswer(query);
     }
   };
 
@@ -199,19 +200,10 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Paul Graham GPT</title>
-        <meta
-          name="description"
-          content={`AI-powered search and chat for Paul Graham's essays.`}
-        />
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1"
-        />
-        <link
-          rel="icon"
-          href="/favicon.ico"
-        />
+        <title>稲盛和夫 GPT</title>
+        <meta name="description" content={`AI-powered search and chat for 稲盛和夫.`} />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <div className="flex flex-col h-screen">
@@ -287,33 +279,24 @@ export default function Home() {
             )}
 
             {apiKey.length === 51 ? (
-              <div className="relative w-full mt-4">
+              <form className="relative w-full mt-4" onSubmit={handleSubmit(onSubmit)}>
                 <IconSearch className="absolute top-3 w-10 left-1 h-6 rounded-full opacity-50 sm:left-3 sm:top-4 sm:h-8" />
 
                 <input
-                  ref={inputRef}
                   className="h-12 w-full rounded-full border border-zinc-600 pr-12 pl-11 focus:border-zinc-800 focus:outline-none focus:ring-1 focus:ring-zinc-800 sm:h-16 sm:py-2 sm:pr-16 sm:pl-16 sm:text-lg"
                   type="text"
-                  placeholder="How do I start a startup?"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={handleKeyDown}
+                  placeholder="如何強いメンバーを集まるか"
+                  {...register("query", { required: true })}
                 />
 
-                <button>
-                  <IconArrowRight
-                    onClick={mode === "search" ? handleSearch : handleAnswer}
-                    className="absolute right-2 top-2.5 h-7 w-7 rounded-full bg-blue-500 p-1 hover:cursor-pointer hover:bg-blue-600 sm:right-3 sm:top-3 sm:h-10 sm:w-10 text-white"
-                  />
+                <button type="submit">
+                  <IconArrowRight className="absolute right-2 top-2.5 h-7 w-7 rounded-full bg-blue-500 p-1 hover:cursor-pointer hover:bg-blue-600 sm:right-3 sm:top-3 sm:h-10 sm:w-10 text-white" />
                 </button>
-              </div>
+              </form>
             ) : (
               <div className="text-center font-bold text-3xl mt-7">
                 Please enter your
-                <a
-                  className="mx-2 underline hover:opacity-50"
-                  href="https://openai.com/product"
-                >
+                <a className="mx-2 underline hover:opacity-50" href="https://openai.com/product">
                   OpenAI API key
                 </a>
                 in settings.
@@ -360,12 +343,7 @@ export default function Home() {
                             <div className="font-bold text-xl">{chunk.essay_title}</div>
                             <div className="mt-1 font-bold text-sm">{chunk.essay_date}</div>
                           </div>
-                          <a
-                            className="hover:opacity-50 ml-2"
-                            href={chunk.essay_url}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
+                          <a className="hover:opacity-50 ml-2" href={chunk.essay_url} target="_blank" rel="noreferrer">
                             <IconExternalLink />
                           </a>
                         </div>
@@ -386,12 +364,7 @@ export default function Home() {
                           <div className="font-bold text-xl">{chunk.essay_title}</div>
                           <div className="mt-1 font-bold text-sm">{chunk.essay_date}</div>
                         </div>
-                        <a
-                          className="hover:opacity-50 ml-2"
-                          href={chunk.essay_url}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
+                        <a className="hover:opacity-50 ml-2" href={chunk.essay_url} target="_blank" rel="noreferrer">
                           <IconExternalLink />
                         </a>
                       </div>
@@ -401,7 +374,7 @@ export default function Home() {
                 ))}
               </div>
             ) : (
-              <div className="mt-6 text-center text-lg">{`AI-powered search & chat for Paul Graham's essays.`}</div>
+              <div className="mt-6 text-center text-lg">{`AI-powered search & chat with 稲盛和夫`}</div>
             )}
           </div>
         </div>

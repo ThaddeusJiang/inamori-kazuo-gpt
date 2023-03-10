@@ -1,6 +1,6 @@
-# Paul Graham GPT
+# 稲盛和夫 GPT
 
-AI-powered search and chat for [Paul Graham's](https://twitter.com/paulg) [essays](http://www.paulgraham.com/articles.html).
+AI-powered search and chat for [稲盛和夫's](https://twitter.com/paulg) [articles](https://www.kyocera.co.jp/inamori).
 
 All code & data used is 100% open-source.
 
@@ -14,7 +14,7 @@ I recommend getting familiar with fetching, cleaning, and storing data as outlin
 
 ## How It Works
 
-Paul Graham GPT provides 2 things:
+稲盛和夫 GPT provides 2 things:
 
 1. A search interface.
 2. A chat interface.
@@ -43,6 +43,10 @@ This allows for a chat-like experience where the user can ask questions about th
 
 Here's a quick overview of how to run it locally.
 
+```
+supabase init
+```
+
 ### Requirements
 
 1. Set up OpenAI
@@ -64,7 +68,7 @@ I recommend turning on Row Level Security and setting up a service role to use w
 3. Clone repo
 
 ```bash
-git clone https://github.com/mckaywrigley/paul-graham-gpt.git
+git clone https://github.com/ThaddeusJiang/inamori-kazuo-gpt.git
 ```
 
 4. Install dependencies
@@ -92,7 +96,7 @@ SUPABASE_SERVICE_ROLE_KEY=
 npm run scrape
 ```
 
-This scrapes all of the essays from Paul Graham's website and saves them to a json file.
+This scrapes all of the essays from 稲盛和夫's website and saves them to a json file.
 
 7. Run embedding script
 
@@ -116,7 +120,7 @@ npm run dev
 
 ## Credits
 
-Thanks to [Paul Graham](https://twitter.com/paulg) for his writing.
+Thanks to [稲盛和夫](https://twitter.com/paulg) for his writing.
 
 I highly recommend you read his essays.
 
@@ -124,7 +128,7 @@ I highly recommend you read his essays.
 
 ## Contact
 
-If you have any questions, feel free to reach out to me on [Twitter](https://twitter.com/mckaywrigley)!
+If you have any questions, feel free to reach out to me on [Twitter](https://twitter.com/ThaddeusJiang)!
 
 ## Notes
 

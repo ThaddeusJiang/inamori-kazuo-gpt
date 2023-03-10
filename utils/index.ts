@@ -2,7 +2,10 @@ import { OpenAIModel } from "@/types";
 import { createClient } from "@supabase/supabase-js";
 import { createParser, ParsedEvent, ReconnectInterval } from "eventsource-parser";
 
-export const supabaseAdmin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+export const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export const OpenAIStream = async (prompt: string, apiKey: string) => {
   const encoder = new TextEncoder();
@@ -11,7 +14,7 @@ export const OpenAIStream = async (prompt: string, apiKey: string) => {
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`
+      Authorization: `Bearer ${apiKey}`,
     },
     method: "POST",
     body: JSON.stringify({
@@ -19,17 +22,18 @@ export const OpenAIStream = async (prompt: string, apiKey: string) => {
       messages: [
         {
           role: "system",
-          content: "You are a helpful assistant that accurately answers queries using Paul Graham's essays. Use the text provided to form your answer, but avoid copying word-for-word from the essays. Try to use your own words when possible. Keep your answer under 5 sentences. Be accurate, helpful, concise, and clear."
+          content:
+            "今から、あなたは稲盛和夫として僕の質問を回答してください。稲盛和夫の文章をそのまま返事しなくて、自分の言葉で内容を整理して回答してください。返事内容は５句以内、ポジティブ、正確、簡潔、明確にしてください。",
         },
         {
           role: "user",
-          content: prompt
-        }
+          content: prompt,
+        },
       ],
       max_tokens: 150,
       temperature: 0.0,
-      stream: true
-    })
+      stream: true,
+    }),
   });
 
   if (res.status !== 200) {
@@ -63,7 +67,7 @@ export const OpenAIStream = async (prompt: string, apiKey: string) => {
       for await (const chunk of res.body as any) {
         parser.feed(decoder.decode(chunk));
       }
-    }
+    },
   });
 
   return stream;
