@@ -52,25 +52,22 @@ const getEssay = async (linkObj: { url: string; title: string }) => {
   const fullLink = BASE_URL + url;
   const html = await axios.get(fullLink);
   const $ = cheerio.load(html.data);
-  const ps = $("#mainContents > .other:nth-child(1) > .inner");
 
-  ps.each((i, p) => {
-    const text = $(p).text();
+  const text = $("#mainContents").text();
 
-    const cleanedText = text.replace(/\s+/g, " ").replace(/\.([a-zA-Z])/g, ". $1");
-    const trimmedContent = cleanedText.trim();
+  const cleanedText = text.replace(/\s+/g, " ").replace(/\.([a-zA-Z])/g, ". $1");
+  const trimmedContent = cleanedText.trim();
 
-    essay = {
-      title,
-      url: fullLink,
-      date: "", // TODO: get date
-      thanks: "", // TODO: get thanks
-      content: trimmedContent,
-      length: trimmedContent.length,
-      tokens: encode(trimmedContent).length,
-      chunks: [],
-    };
-  });
+  essay = {
+    title,
+    url: fullLink,
+    date: "", // TODO: get date
+    thanks: "", // TODO: get thanks
+    content: trimmedContent,
+    length: trimmedContent.length,
+    tokens: encode(trimmedContent).length,
+    chunks: [],
+  };
 
   return essay;
 };
@@ -106,22 +103,24 @@ const chunkEssay = async (essay: PGEssay) => {
     essayTextChunks.push(content.trim());
   }
 
-  const essayChunks = essayTextChunks.map((text) => {
-    const trimmedText = text.trim();
+  const essayChunks = essayTextChunks
+    .filter((text) => text.trim().length > 0)
+    .map((text) => {
+      const trimmedText = text.trim();
 
-    const chunk: PGChunk = {
-      essay_title: title,
-      essay_url: url,
-      essay_date: date,
-      essay_thanks: thanks,
-      content: trimmedText,
-      content_length: trimmedText.length,
-      content_tokens: encode(trimmedText).length,
-      embedding: [],
-    };
+      const chunk: PGChunk = {
+        essay_title: title,
+        essay_url: url,
+        essay_date: date,
+        essay_thanks: thanks,
+        content: trimmedText,
+        content_length: trimmedText.length,
+        content_tokens: encode(trimmedText).length,
+        embedding: [],
+      };
 
-    return chunk;
-  });
+      return chunk;
+    });
 
   if (essayChunks.length > 1) {
     for (let i = 0; i < essayChunks.length; i++) {
