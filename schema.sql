@@ -15,7 +15,7 @@ create table embedding_inamori_website (
 );
 
 -- RUN 3rd after running the scripts
-create or replace function pg_search (
+create or replace function inamori_search (
   query_embedding vector(1536),
   similarity_threshold float,
   match_count int
@@ -36,18 +36,18 @@ as $$
 begin
   return query
   select
-    pg.id,
-    pg.essay_title,
-    pg.essay_url,
-    pg.essay_date,
-    pg.essay_thanks,
-    pg.content,
-    pg.content_length,
-    pg.content_tokens,
-    1 - (pg.embedding <=> query_embedding) as similarity
-  from embedding_inamori_website AS pg
-  where 1 - (pg.embedding <=> query_embedding) > similarity_threshold
-  order by pg.embedding <=> query_embedding
+    inamori.id,
+    inamori.essay_title,
+    inamori.essay_url,
+    inamori.essay_date,
+    inamori.essay_thanks,
+    inamori.content,
+    inamori.content_length,
+    inamori.content_tokens,
+    1 - (inamori.embedding <=> query_embedding) as similarity
+  from embedding_inamori_website AS inamori
+  where 1 - (inamori.embedding <=> query_embedding) > similarity_threshold
+  order by inamori.embedding <=> query_embedding
   limit match_count;
 end;
 $$;
