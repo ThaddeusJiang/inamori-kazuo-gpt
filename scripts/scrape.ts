@@ -5,13 +5,13 @@ import fs from "fs";
 import { encode } from "gpt-3-encoder";
 
 const BASE_URL = "https://www.kyocera.co.jp";
+
 const CHUNK_SIZE = 200;
 
-const getLinks = async () => {
-  // https://www.kyocera.co.jp/inamori/management/
-  const html = await axios.get(`${BASE_URL}/inamori/management`);
+const getLinks = async ({ url, selector }: { url: string; selector: string }) => {
+  const html = await axios.get(url);
   const $ = cheerio.load(html.data);
-  const linkDOMs = $("#history_mainContents > dl > dd > ul > li");
+  const linkDOMs = $(selector);
 
   const linksArr: { url: string; title: string }[] = [];
 
@@ -55,7 +55,7 @@ const getEssay = async (linkObj: { url: string; title: string }) => {
 
   const text = $("#mainContents").text();
 
-  const cleanedText = text.replace(/\s+/g, " ").replace(/\.([a-zA-Z])/g, ". $1");
+  const cleanedText = text.replace(/\s+/g, " ");
   const trimmedContent = cleanedText.trim();
 
   essay = {
@@ -78,7 +78,7 @@ const chunkEssay = async (essay: PGEssay) => {
   let essayTextChunks = [];
 
   if (encode(content).length > CHUNK_SIZE) {
-    const split = content.split(". ");
+    const split = content.split("。");
     let chunkText = "";
 
     for (let i = 0; i < split.length; i++) {
@@ -91,11 +91,7 @@ const chunkEssay = async (essay: PGEssay) => {
         chunkText = "";
       }
 
-      if (sentence[sentence.length - 1].match(/[a-z0-9]/i)) {
-        chunkText += sentence + ". ";
-      } else {
-        chunkText += sentence + " ";
-      }
+      chunkText += sentence + "。";
     }
 
     essayTextChunks.push(chunkText.trim());
@@ -146,12 +142,44 @@ const chunkEssay = async (essay: PGEssay) => {
 };
 
 (async () => {
-  const links = await getLinks();
+  let essays: PGEssay[] = [];
 
-  let essays = [];
+  // TODO: 稲盛和夫の歩み www.kyocera.co.jp/inamori/profile/
+  // TODO: 年譜
+  // TODO: エピソード
+  // TODO: まんが稲盛和夫
+  // TODO: 出版物 https://www.kyocera.co.jp/inamori/publication/
 
-  for (let i = 0; i < links.length; i++) {
-    const essay = await getEssay(links[i]);
+  // フィロソフィ https://www.kyocera.co.jp/inamori/philosophy/
+  const plinks = await getLinks({
+    url: `${BASE_URL}/inamori/philosophy/`,
+    selector: "#mainContents dd",
+  });
+  // TODO: plinks is not an array of links
+  for (let i = 0; i < plinks.length; i++) {
+    const essay = await getEssay(plinks[i]);
+    const chunkedEssay = await chunkEssay(essay);
+    essays.push(chunkedEssay);
+  }
+
+  // 経営の原点 https://www.kyocera.co.jp/inamori/management/
+  const mlinks = await getLinks({
+    url: `${BASE_URL}/inamori/management/`,
+    selector: "#history_mainContents dd",
+  });
+  for (let i = 0; i < mlinks.length; i++) {
+    const essay = await getEssay(mlinks[i]);
+    const chunkedEssay = await chunkEssay(essay);
+    essays.push(chunkedEssay);
+  }
+
+  // 社会活動 https://www.kyocera.co.jp/inamori/contribution/
+  const clinks = await getLinks({
+    url: `${BASE_URL}/inamori/contribution/`,
+    selector: "#history_mainContents dd",
+  });
+  for (let i = 0; i < clinks.length; i++) {
+    const essay = await getEssay(clinks[i]);
     const chunkedEssay = await chunkEssay(essay);
     essays.push(chunkedEssay);
   }
@@ -159,11 +187,11 @@ const chunkEssay = async (essay: PGEssay) => {
   const json: PGJSON = {
     current_date: new Date().toISOString(),
     author: "稲盛和夫",
-    url: "https://www.kyocera.co.jp/inamori",
+    url: `${BASE_URL}`,
     length: essays.reduce((acc, essay) => acc + essay.length, 0),
     tokens: essays.reduce((acc, essay) => acc + essay.tokens, 0),
     essays,
   };
 
-  fs.writeFileSync("scripts/pg.json", JSON.stringify(json));
+  fs.writeFileSync("scripts/website.json", JSON.stringify(json));
 })();

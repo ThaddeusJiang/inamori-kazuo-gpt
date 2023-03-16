@@ -1,6 +1,6 @@
 # 稲盛和夫 GPT
 
-AI-powered search and chat for [稲盛和夫's](https://twitter.com/paulg) [articles](https://www.kyocera.co.jp/inamori).
+AI-powered search and chat for [稲盛和夫](https://www.kyocera.co.jp/inamori).
 
 All code & data used is 100% open-source.
 
@@ -117,23 +117,3 @@ This process will take 20-30 minutes.
 ```bash
 npm run dev
 ```
-
-## Credits
-
-Thanks to [稲盛和夫](https://twitter.com/paulg) for his writing.
-
-I highly recommend you read his essays.
-
-3 years ago they convinced me to learn to code, and it changed my life.
-
-## Contact
-
-If you have any questions, feel free to reach out to me on [Twitter](https://twitter.com/ThaddeusJiang)!
-
-## Notes
-
-I sacrificed composability for simplicity in the app.
-
-Yes, you can make things more modular and reusable.
-
-But I kept pretty much everything in the homepage component for the sake of simplicity.

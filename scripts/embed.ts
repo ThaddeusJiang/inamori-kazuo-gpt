@@ -3,16 +3,17 @@ import { loadEnvConfig } from "@next/env";
 import { createClient } from "@supabase/supabase-js";
 import fs from "fs";
 import { Configuration, OpenAIApi } from "openai";
+import { isMainThread, Worker, workerData } from "worker_threads";
 
 loadEnvConfig("");
 
-const generateEmbeddings = async (essays: PGEssay[]) => {
+const generateEmbeddings = async (essays: PGEssay[], start: number, end: number, tableName: string) => {
   const configuration = new Configuration({ apiKey: process.env.OPENAI_API_KEY });
   const openai = new OpenAIApi(configuration);
 
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
-  for (let i = 0; i < essays.length; i++) {
+  for (let i = start; i < Math.min(end, essays.length); i++) {
     const section = essays[i];
 
     for (let j = 0; j < section.chunks.length; j++) {
@@ -22,13 +23,13 @@ const generateEmbeddings = async (essays: PGEssay[]) => {
 
       const embeddingResponse = await openai.createEmbedding({
         model: "text-embedding-ada-002",
-        input: content
+        input: content,
       });
 
       const [{ embedding }] = embeddingResponse.data.data;
 
       const { data, error } = await supabase
-        .from("pg")
+        .from(tableName)
         .insert({
           essay_title,
           essay_url,
@@ -37,7 +38,7 @@ const generateEmbeddings = async (essays: PGEssay[]) => {
           content,
           content_length,
           content_tokens,
-          embedding
+          embedding,
         })
         .select("*");
 
@@ -53,7 +54,25 @@ const generateEmbeddings = async (essays: PGEssay[]) => {
 };
 
 (async () => {
-  const book: PGJSON = JSON.parse(fs.readFileSync("scripts/pg.json", "utf8"));
+  const book: PGJSON = JSON.parse(fs.readFileSync("scripts/website.json", "utf8"));
+  const essays = book.essays;
 
-  await generateEmbeddings(book.essays);
+  if (isMainThread) {
+    const tasksPerWorker = 20;
+    const total = essays.length;
+    const workerCount = Math.ceil(total / tasksPerWorker);
+
+    for (let i = 0; i < workerCount; i++) {
+      const start = i * tasksPerWorker;
+      const end = Math.min(start + tasksPerWorker, total);
+
+      new Worker(__filename, {
+        workerData: { start, end },
+      });
+    }
+  } else {
+    const { start, end } = workerData as { start: number; end: number };
+    console.log("start embedding", start, end, "inamori_website");
+    await generateEmbeddings(essays, start, end, "embedding_inamori_website");
+  }
 })();

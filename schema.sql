@@ -2,7 +2,7 @@
 create extension vector;
 
 -- RUN 2nd
-create table pg (
+create table embedding_inamori_website (
   id bigserial primary key,
   essay_title text,
   essay_url text,
@@ -45,7 +45,7 @@ begin
     pg.content_length,
     pg.content_tokens,
     1 - (pg.embedding <=> query_embedding) as similarity
-  from pg
+  from embedding_inamori_website AS pg
   where 1 - (pg.embedding <=> query_embedding) > similarity_threshold
   order by pg.embedding <=> query_embedding
   limit match_count;
@@ -53,6 +53,6 @@ end;
 $$;
 
 -- RUN 4th
-create index on pg 
+create index on embedding_inamori_website
 using ivfflat (embedding vector_cosine_ops)
 with (lists = 100);
