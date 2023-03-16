@@ -8,7 +8,7 @@ All code & data used is 100% open-source.
 
 The dataset is a CSV file containing all text & embeddings used.
 
-Download it [here](https://drive.google.com/file/d/1BxcPw2mn0VYFucc62wlt9H0nQiOu38ki/view?usp=sharing).
+Download it [here](./scripts/embedding_inamori_website.csv).
 
 I recommend getting familiar with fetching, cleaning, and storing data as outlined in the scraping and embedding scripts below, but feel free to skip those steps and just use the dataset.
 
